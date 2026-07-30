@@ -88,12 +88,26 @@ cd /path/to/manatee-root
 python -m main.run
 ```
 
+먼저 import 진단을 돌리면 `api.py`, `app_state.py`, `Manatee/` 경로와 패키지 누락을 확인할 수 있습니다.
+
+```bash
+python -m main.diagnose
+```
+
 서버 구조가 `api.py`와 `Manatee/` 데이터 폴더를 다른 위치에 둔다면 경로를 명시하세요.
 
 예를 들어 `tree.txt` 기준으로 `api.py`는 `temp/`, `Manatee/`는 `temp/main/` 아래에 있으면:
 
 ```bash
 cd /path/to/temp
+MANATEE_API_ROOT=/path/to/temp \
+MANATEE_DATA_ROOT=/path/to/temp/main \
+python -m main.diagnose
+```
+
+진단이 통과하면 workflow를 실행합니다.
+
+```bash
 MANATEE_API_ROOT=/path/to/temp \
 MANATEE_DATA_ROOT=/path/to/temp/main \
 python -m main.run --model qwen2.5:14b --n-iter 1 --n-candidates 10

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import os
+import traceback
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -94,17 +95,25 @@ class ManateeData:
             with _working_directory(DATA_ROOT):
                 import api  # type: ignore
         except Exception as exc:
+            detail = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
             raise RuntimeError(
-                "api 모듈을 불러오지 못했습니다. 서버 구조가 다르면 환경변수로 경로를 지정하세요.\n"
-                f"- 감지된 api root: {API_ROOT}\n"
-                f"- 감지된 data root: {DATA_ROOT}\n"
-                f"- 현재 작업 디렉터리: {Path.cwd()}\n"
-                "예: MANATEE_API_ROOT=/path/to/temp MANATEE_DATA_ROOT=/path/to/temp/main python -m main.run"
+                "Failed to import api.py. This usually means api.py was not found, "
+                "or api.py failed while importing app_state.py, dependencies, or Manatee data.\n"
+                f"- API_ROOT: {API_ROOT}\n"
+                f"- DATA_ROOT: {DATA_ROOT}\n"
+                f"- cwd: {Path.cwd()}\n"
+                f"- api.py exists: {(API_ROOT / 'api.py').exists()}\n"
+                f"- app_state.py exists: {(API_ROOT / 'app_state.py').exists()}\n"
+                f"- Manatee dir exists under DATA_ROOT: {(DATA_ROOT / 'Manatee').exists()}\n"
+                "Run example:\n"
+                "  MANATEE_API_ROOT=/path/to/api_dir MANATEE_DATA_ROOT=/path/to/data_dir python -m main.diagnose\n"
+                "Original traceback:\n"
+                f"{detail}"
             ) from exc
 
         missing = [name for name in ("genes", "tfs", "labels", "x", "vae") if not hasattr(api, name)]
         if missing:
-            raise RuntimeError(f"api 모듈에 필요한 속성이 없습니다: {', '.join(missing)}")
+            raise RuntimeError(f"api.py was imported, but these required attributes are missing: {', '.join(missing)}")
 
         return cls(
             genes=api.genes,
@@ -126,9 +135,9 @@ class ManateeData:
         source_idx = np.where(self.labels == source_stage)[0]
         target_idx = np.where(self.labels == target_stage)[0]
         if len(source_idx) == 0:
-            raise ValueError(f"{source_stage} stage cell을 찾지 못했습니다.")
+            raise ValueError(f"No cells found for source stage: {source_stage}")
         if len(target_idx) == 0:
-            raise ValueError(f"{target_stage} stage cell을 찾지 못했습니다.")
+            raise ValueError(f"No cells found for target stage: {target_stage}")
         return source_idx, target_idx
 
     def latent(self, arr: Any | None = None) -> np.ndarray:
