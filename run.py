@@ -36,6 +36,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model", action="append", dest="models", help="Model name. Repeat to run multiple models.")
     parser.add_argument("--query", default=None)
     parser.add_argument("--final-answer", action="store_true", help="Generate a Korean final report after screening.")
+    parser.add_argument("--compute-mmd", action="store_true", help="Compute MMD metrics during every strategy evaluation.")
     return parser.parse_args()
 
 
@@ -52,6 +53,7 @@ def main() -> None:
         top_n_trrust=CONFIG.top_n_trrust,
         top_n_feedback_genes=CONFIG.top_n_feedback_genes,
         top_n_history=CONFIG.top_n_history,
+        compute_mmd=args.compute_mmd or CONFIG.compute_mmd,
         use_all_tfs_as_allowed_list=CONFIG.use_all_tfs_as_allowed_list,
         models=tuple(args.models or CONFIG.models),
         exhaustive_csv=CONFIG.exhaustive_csv,

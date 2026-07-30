@@ -249,6 +249,7 @@ def run_from_gui(
     n_iter: int,
     n_candidates: int,
     final_answer: bool,
+    compute_mmd: bool,
 ) -> Any:
     yield (
         "실행을 시작했습니다. LLM 호출과 Manatee screening이 끝나면 trace가 표시됩니다.",
@@ -270,6 +271,7 @@ def run_from_gui(
         top_n_trrust=CONFIG.top_n_trrust,
         top_n_feedback_genes=CONFIG.top_n_feedback_genes,
         top_n_history=CONFIG.top_n_history,
+        compute_mmd=bool(compute_mmd),
         use_all_tfs_as_allowed_list=CONFIG.use_all_tfs_as_allowed_list,
         models=tuple(models),
         exhaustive_csv=CONFIG.exhaustive_csv,
@@ -322,6 +324,7 @@ def build_demo():
                             value=CONFIG.n_llm_candidates,
                         )
                         final_answer = gr.Checkbox(label="최종 한글 리포트 생성", value=False)
+                        compute_mmd = gr.Checkbox(label="MMD 계산", value=CONFIG.compute_mmd)
                         run_button = gr.Button("실행", variant="primary")
                     with gr.Column(scale=2):
                         query = gr.Textbox(label="Query", lines=5, value="")
@@ -334,7 +337,7 @@ def build_demo():
 
                 run_button.click(
                     run_from_gui,
-                    inputs=[query, source_stage, target_stage, models, n_iter, n_candidates, final_answer],
+                    inputs=[query, source_stage, target_stage, models, n_iter, n_candidates, final_answer, compute_mmd],
                     outputs=[status, summary, trace, files, run_dir_state],
                 )
 

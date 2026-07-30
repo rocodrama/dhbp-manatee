@@ -147,6 +147,7 @@ def run_workflow(
                         mu_all_np=mu_all_np,
                         source_stage=source_stage,
                         target_stage=target_stage,
+                        compute_mmd=config.compute_mmd,
                     )
                     safe_model = _safe_model_name(model_name)
                     screen_csv = save_csv(screen_df, run_dir / f"{safe_model}_iter{iteration}_screening_with_opposite.csv")
@@ -300,4 +301,3 @@ def run_workflow(
     except Exception:
         store.finish_run(run_id, "failed")
         raise
-

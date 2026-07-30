@@ -98,6 +98,7 @@ def evaluate_two_tf_strategy(
     source_stage: str,
     target_stage: str,
     mu_all_np: np.ndarray,
+    compute_mmd: bool,
 ) -> dict[str, Any] | None:
     source_idx, target_idx = data.stage_indices(source_stage, target_stage)
     gene_idx = data.gene_name_to_idx()
@@ -128,12 +129,16 @@ def evaluate_two_tf_strategy(
     else:
         cosine_direction = 0.0
 
-    target_z_sub = target_z[: len(perturbed_z)]
-    xx = np.exp(-np.sum((perturbed_z[:, None, :] - perturbed_z[None, :, :]) ** 2, axis=2)).mean()
-    yy = np.exp(-np.sum((target_z_sub[:, None, :] - target_z_sub[None, :, :]) ** 2, axis=2)).mean()
-    xy = np.exp(-np.sum((perturbed_z[:, None, :] - target_z_sub[None, :, :]) ** 2, axis=2)).mean()
-    mmd = float(max(xx + yy - 2 * xy, 0.0))
-    mmd_similarity = float(1 / (1 + mmd))
+    if compute_mmd:
+        target_z_sub = target_z[: len(perturbed_z)]
+        xx = np.exp(-np.sum((perturbed_z[:, None, :] - perturbed_z[None, :, :]) ** 2, axis=2)).mean()
+        yy = np.exp(-np.sum((target_z_sub[:, None, :] - target_z_sub[None, :, :]) ** 2, axis=2)).mean()
+        xy = np.exp(-np.sum((perturbed_z[:, None, :] - target_z_sub[None, :, :]) ** 2, axis=2)).mean()
+        mmd = float(max(xx + yy - 2 * xy, 0.0))
+        mmd_similarity = float(1 / (1 + mmd))
+    else:
+        mmd = np.nan
+        mmd_similarity = np.nan
 
     corr, _ = pearsonr(pert_c, targ_c)
     if np.isnan(corr):
@@ -165,6 +170,7 @@ def screen_candidate_pool(
     mu_all_np: np.ndarray,
     source_stage: str,
     target_stage: str,
+    compute_mmd: bool,
 ) -> pd.DataFrame:
     gene_idx = data.gene_name_to_idx()
     valid_candidates = [
@@ -189,6 +195,7 @@ def screen_candidate_pool(
                     source_stage=source_stage,
                     target_stage=target_stage,
                     mu_all_np=mu_all_np,
+                    compute_mmd=compute_mmd,
                 )
                 if result is None:
                     continue
@@ -316,4 +323,3 @@ def save_csv(df: pd.DataFrame, path: Path) -> str:
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(path, index=False, encoding="utf-8-sig")
     return str(path)
-

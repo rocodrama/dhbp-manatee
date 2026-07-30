@@ -216,7 +216,9 @@ source_stage: E5.25
 target_stage: E6.25
 n_iter: 3
 n_llm_candidates: 30
+models: qwen2.5:14b
 temperature: 0
+compute_mmd: false
 ```
 
 후보 수:
@@ -238,6 +240,18 @@ temperature: 0
 ```text
 30개 후보: 30C2 * 4 = 1,740
 60개 후보: 60C2 * 4 = 7,080
+```
+
+속도를 우선하면 단일 모델과 작은 후보 수로 먼저 확인하세요.
+
+```bash
+python -m main.run --model qwen2.5:14b --n-iter 1 --n-candidates 10
+```
+
+MMD는 pair마다 큰 거리 행렬을 계산해서 느릴 수 있으므로 기본값은 꺼져 있습니다. 필요할 때만 켭니다.
+
+```bash
+python -m main.run --model qwen2.5:14b --n-iter 1 --n-candidates 10 --compute-mmd
 ```
 
 ## 구조

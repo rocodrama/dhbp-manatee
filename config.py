@@ -12,11 +12,7 @@ RESULTS_ROOT = REPO_ROOT / "results"
 
 
 DEFAULT_MODELS = (
-    "mistral-nemo:12b",
-    "llama3.2-vision:11b",
     "qwen2.5:14b",
-    "gemma3:12b",
-    "deepseek-r1:14b",
 )
 
 
@@ -30,6 +26,13 @@ def _env_int(name: str, default: int) -> int:
         return default
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.lower() in {"1", "true", "yes", "on"}
+
+
 @dataclass(frozen=True)
 class RunConfig:
     source_stage: str = os.getenv("MANATEE_SOURCE_STAGE", "E5.25")
@@ -40,12 +43,8 @@ class RunConfig:
     top_n_trrust: int = _env_int("MANATEE_TOP_N_TRRUST", 25)
     top_n_feedback_genes: int = _env_int("MANATEE_TOP_N_FEEDBACK_GENES", 20)
     top_n_history: int = _env_int("MANATEE_TOP_N_HISTORY", 3)
-    use_all_tfs_as_allowed_list: bool = os.getenv("MANATEE_USE_ALL_TFS", "1").lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
+    compute_mmd: bool = _env_bool("MANATEE_COMPUTE_MMD", False)
+    use_all_tfs_as_allowed_list: bool = _env_bool("MANATEE_USE_ALL_TFS", True)
     models: tuple[str, ...] = field(default_factory=lambda: DEFAULT_MODELS)
     exhaustive_csv: Path = REPO_ROOT / "results" / "manatee_e525_to_e625_all_2tf_parallel" / "all_2tf_combinations_ranked.csv"
     results_root: Path = RESULTS_ROOT
@@ -57,4 +56,3 @@ class RunConfig:
 
 
 CONFIG = RunConfig()
-
