@@ -88,6 +88,17 @@ cd /path/to/manatee-root
 python -m main.run
 ```
 
+서버 구조가 `api.py`와 `Manatee/` 데이터 폴더를 다른 위치에 둔다면 경로를 명시하세요.
+
+예를 들어 `tree.txt` 기준으로 `api.py`는 `temp/`, `Manatee/`는 `temp/main/` 아래에 있으면:
+
+```bash
+cd /path/to/temp
+MANATEE_API_ROOT=/path/to/temp \
+MANATEE_DATA_ROOT=/path/to/temp/main \
+python -m main.run --model qwen2.5:14b --n-iter 1 --n-candidates 10
+```
+
 짧은 smoke test:
 
 ```bash
@@ -118,6 +129,15 @@ python -m main.run --model qwen2.5:14b --final-answer
 
 ```bash
 cd /path/to/manatee-root
+python -m main.gui --host 127.0.0.1 --port 7860
+```
+
+`api.py`와 `Manatee/` 위치가 다르면 GUI도 같은 환경변수를 붙여 실행합니다.
+
+```bash
+cd /path/to/temp
+MANATEE_API_ROOT=/path/to/temp \
+MANATEE_DATA_ROOT=/path/to/temp/main \
 python -m main.gui --host 127.0.0.1 --port 7860
 ```
 
@@ -240,4 +260,3 @@ flowchart TD
 - 새 workflow 실행 결과만 SQLite와 CSV/JSON에 동시에 저장됩니다.
 - `main/`만 따로 실행하지 말고, 기존 `api.py`와 데이터/모델이 있는 루트에서 실행하세요.
 - 서버 Python 환경에 `langchain-ollama`, `scipy`, `torch`, `gradio`가 있어야 전체 workflow와 GUI가 동작합니다.
-
