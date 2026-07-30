@@ -63,6 +63,50 @@ def _resolve_data_root() -> Path:
     return Path.cwd()
 
 
+def _find_trrust_fallback() -> Path | None:
+    candidates = [
+        API_ROOT / "trrust_mouse.txt",
+        DATA_ROOT / "trrust_mouse.txt",
+        DATA_ROOT / "Manatee" / "GSE72857" / "processed" / "trrust_rawdata.mouse.tsv",
+        DATA_ROOT / "Manatee" / "data" / "trrust_mouse.txt",
+    ]
+    for path in candidates:
+        if path.exists() and path.is_file():
+            return path
+
+    manatee_dir = DATA_ROOT / "Manatee"
+    if manatee_dir.exists():
+        for pattern in ("trrust*.txt", "trrust*.tsv"):
+            matches = sorted(manatee_dir.rglob(pattern))
+            if matches:
+                return matches[0]
+    return None
+
+
+def _patch_app_state_trrust_loader() -> None:
+    try:
+        import app_state  # type: ignore
+    except Exception:
+        return
+
+    original_loader = getattr(app_state, "_load_trrust", None)
+    if original_loader is None or getattr(app_state, "_manatee_trrust_fallback_patched", False):
+        return
+
+    def load_trrust_with_fallback(path):
+        requested = Path(path)
+        if requested.exists():
+            return original_loader(requested)
+        fallback = _find_trrust_fallback()
+        if fallback is None:
+            return original_loader(requested)
+        print(f"[manatee] TRRUST fallback: {requested} -> {fallback}")
+        return original_loader(fallback)
+
+    app_state._load_trrust = load_trrust_with_fallback
+    app_state._manatee_trrust_fallback_patched = True
+
+
 API_ROOT = _resolve_api_root()
 DATA_ROOT = _resolve_data_root()
 for path in (API_ROOT, REPO_ROOT, PACKAGE_ROOT):
@@ -93,6 +137,7 @@ class ManateeData:
     def from_api_module(cls) -> "ManateeData":
         try:
             with _working_directory(DATA_ROOT):
+                _patch_app_state_trrust_loader()
                 import api  # type: ignore
         except Exception as exc:
             detail = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))

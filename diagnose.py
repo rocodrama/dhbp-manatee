@@ -26,6 +26,8 @@ def main() -> None:
     _print_path_status("app_state.py", adapter.API_ROOT / "app_state.py")
     _print_path_status("Manatee", adapter.DATA_ROOT / "Manatee")
     _print_path_status("Manatee/data", adapter.DATA_ROOT / "Manatee" / "data")
+    trrust_fallback = adapter._find_trrust_fallback()
+    print(f"TRRUST fallback candidate: {trrust_fallback}")
 
     print("\n--- import availability ---")
     for module_name in [
@@ -69,4 +71,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
